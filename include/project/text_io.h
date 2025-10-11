@@ -7,25 +7,56 @@
 
 using std::string;
 
-namespace TextIO {
-	struct InputToProcess {
-		string rawInput;
-		bool expectCommand;
-	};
-	enum class YesNo : std::uint8_t {
-		Yes = 0U,
-		No,
-		Invalid
-	};
+namespace TextIO
+{
+enum class CommandType : std::uint8_t
+{
+  Invalid = 0U,
+  Unknown,
+  Yes,
+  No,
+  Open,
+  InteractWithTarget,
+  MultipleChoice,
+  Help,
+  Save,
+  Load,
+  Quit,
+  GoTo,
+  Use,
+  Take,
+  Drop,
+  Examine,
+  TalkTo,
+  Attack,
+  OpenObject,
+  Close,
+  Inventory,
+  Equip,
+  Unequip,
+};
 
-	// Handling inputs
-	string getInput(YesNo expectYesOrNo);
-	bool processInput(const InputToProcess& input);
-	//bool registerInteraction();
+struct UserInput
+{
+  CommandType type = CommandType::Invalid;
+  string command;
+  string interable;
+  string target;
+};
 
-	// Handling outputs
-	bool outputText(const string& text);
-	//string findTextToOutput();
-}
+// struct outputParams
+//{
+//   CommandType commandType;
+//   string outputText;
+// };
+
+// Handling inputs
+UserInput getInput();
+// bool processInput(UserInput& userInput);
+
+// Handling outputs
+// CommandType outputText(outputParams& outputParams);
+void outputText(string& text);
+} // namespace TextIO
 
 #endif // TEXT_IO_H

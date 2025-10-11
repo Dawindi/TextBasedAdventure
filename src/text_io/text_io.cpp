@@ -2,161 +2,251 @@
 #include <cctype>
 #include <iostream>
 #include <istream>
-#include <list>
 #include <optional>
+#include <unordered_map>
+#include <vector>
 
-using std::cout;
+using std::cerr;
 using std::cin;
-using std::endl;
-using std::string;
 using std::getline;
-using std::ws;
-using std::list;
 using std::optional;
+using std::unordered_map;
+using std::vector;
+using std::ws;
+using TextIO::CommandType;
 
-namespace TextIO_Helpers {
-	const string defaultResponse = "I don't understand that command. Please try again";
-	const list<string> textCommands = {
-		// Basic commands
-		"help",
-		"save",
-		"load",
-		"quit",
+namespace TextIO_Helpers
+{
+const string defaultResponse =
+  "I don't understand that command. Please try something else or type help to "
+  "see available commands";
+const unordered_map<string, CommandType> textCommands = {
+  // Basic commands
+  {"help", CommandType::Help},
+  {"save", CommandType::Save},
+  {"load", CommandType::Load},
+  {"quit", CommandType::Quit},
 
-		// Movement commands
-		"go to",
-		"move to",
-		"walk to",
-		"run to",
-		"enter",
-		"leave",
+  // Movement commands
+  {"go to", CommandType::GoTo},
+  {"move to", CommandType::GoTo},
+  {"walk to", CommandType::GoTo},
+  {"run to", CommandType::GoTo},
+  {"travel to", CommandType::GoTo},
+  {"enter", CommandType::GoTo},
+  {"leave", CommandType::GoTo},
 
-		// Interaction commands
-		"use",
-		"take",
-		"pick up",
-		"drop",
-		"look at",
-		"examine",
-		"talk to",
-		"attack",
-		"open",
-		"close"
-	};
+  // Interaction commands
+  {"use", CommandType::Use},
+  {"take", CommandType::Take},
+  {"pick up", CommandType::Take},
+  {"drop", CommandType::Drop},
+  {"look at", CommandType::Examine},
+  {"examine", CommandType::Examine},
+  {"talk to", CommandType::TalkTo},
+  {"attack", CommandType::Attack},
+  {"open", CommandType::Open},
+  {"close", CommandType::Close},
 
-	optional<bool> StringToYesNo(const string& input) {
-		if (input == "yes" || input == "y" || input == "Yes" || input == "Y") {
-			return true;
-		}
-		else if (input == "no" || input == "n" || input == "No" || input == "N") {
-			return false;
-		}
-		return std::nullopt;
-	}
+  // Inventory commands
+  {"inventory", CommandType::Inventory},
+  {"check inventory", CommandType::Inventory},
+  {"show inventory", CommandType::Inventory},
+  {"equip", CommandType::Equip},
+  {"unequip", CommandType::Unequip},
 
-	string StringToLowerCase(const string& input) {
-		string lowerCaseString = input;
-		for (char& c : lowerCaseString) {
-			c = tolower(c);
-		}
-		return lowerCaseString;
-	}
+  // Yes/No commands
+  {"yes", CommandType::Yes},
+  {"y", CommandType::Yes},
+  {"no", CommandType::No},
+  {"n", CommandType::No},
 
-	string promptOpenInput()
-	{
-		string input;
-		getline(cin >> ws, input);
-		return input;
-	}
+  // Multiple choice commands
+  {"1", CommandType::MultipleChoice},
+  {"2", CommandType::MultipleChoice},
+  {"3", CommandType::MultipleChoice},
+  {"4", CommandType::MultipleChoice},
+  {"5", CommandType::MultipleChoice},
+  {"6", CommandType::MultipleChoice},
+  {"7", CommandType::MultipleChoice},
+  {"8", CommandType::MultipleChoice},
+  {"9", CommandType::MultipleChoice},
+  {"10", CommandType::MultipleChoice},
+};
 
-	optional<bool> promptYesNoInput()
-	{
-		string input;
-		getline(cin >> ws, input);
-		return StringToYesNo(input);
-	}
-
-	bool stringIsValid(const string& input)
-	{
-		// Check if the input is empty
-		if (input.empty()) {
-			return false;
-		}
-		// Check if the input contains only whitespace
-		for (const auto& c : input) {
-			if (!isspace(c)) {
-				break;
-			}
-			return false;
-		}
-		// Check if the input contains only printable characters
-		for (const auto& c : input) {
-			if (!isprint(c)) {
-				return false;
-			}
-		}
-		return true;
-	}
+string StringToLowerCase(const string& input)
+{
+  string lowerCaseString = input;
+  for (char& c : lowerCaseString)
+  {
+    c = tolower(static_cast<unsigned char>(c));
+  }
+  return lowerCaseString;
 }
 
+bool stringIsValid(const string& input)
+{
+  if (input.empty())
+  {
+    return false;
+  }
+  for (const auto& c : input)
+  {
+    if (!isspace(static_cast<unsigned char>(c)))
+    {
+      break;
+    }
+    return false;
+  }
+  for (const auto& c : input)
+  {
+    if (!isprint(static_cast<unsigned char>(c)))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Splits the input string into words separated by single or multiple space
+// characters. Empty segments caused by consecutive spaces are ignored.
+vector<string> SplitBySpaces(const string& input)
+{
+  vector<string> words;
+  string current;
+  for (char c : input)
+  {
+    if (c == ' ')
+    {
+      if (!current.empty())
+      {
+        words.push_back(current);
+        current.clear();
+      }
+    }
+    else
+    {
+      current.push_back(c);
+    }
+  }
+  if (!current.empty())
+  {
+    words.push_back(current);
+  }
+  return words;
+}
+
+void checkCommand(TextIO::UserInput userInput)
+{
+  switch (userInput.type)
+  {
+    case CommandType::Invalid:
+    case CommandType::Unknown:
+      cerr << defaultResponse << "\n";
+      break;
+    case CommandType::Yes:
+    case CommandType::No:
+      if (userInput.command.empty())
+      {
+        cerr << "Please respond with yes or no.\n";
+      }
+      break;
+    case CommandType::Open:
+      break;
+    case CommandType::InteractWithTarget:
+      break;
+    case CommandType::MultipleChoice:
+      break;
+    case CommandType::Help:
+      break;
+    case CommandType::Save:
+      break;
+    case CommandType::Load:
+      break;
+    case CommandType::Quit:
+      break;
+    case CommandType::GoTo:
+      break;
+    case CommandType::Use:
+      break;
+    case CommandType::Take:
+      break;
+    case CommandType::Drop:
+      break;
+    case CommandType::Examine:
+      break;
+    case CommandType::TalkTo:
+      break;
+    case CommandType::Attack:
+      break;
+    case CommandType::OpenObject:
+      break;
+    case CommandType::Close:
+      break;
+    case CommandType::Inventory:
+      break;
+    case CommandType::Equip:
+      break;
+    case CommandType::Unequip:
+      break;
+    default:
+      cerr << "Error: Unhandled CommandType in checkCommand\n";
+      break;
+  }
+}
+} // namespace TextIO_Helpers
 
 using namespace TextIO_Helpers;
-string TextIO::getInput(YesNo expectYesOrNo)
+TextIO::UserInput TextIO::getInput()
 {
-	if (expectYesOrNo == YesNo::Yes) {
-		optional<bool> input = promptYesNoInput();
-		while (!input.has_value()) {
-			outputText("Please answer 'yes' or 'no'.");
-			input = promptYesNoInput();
-		}
-		return *input ? "yes" : "no";
-	}
-	else if (expectYesOrNo == YesNo::No)
-	{
-		string input = promptOpenInput();
-		while (!stringIsValid(input)) {
-			outputText(defaultResponse);
-			input = promptOpenInput();
-		}
-		return input;
-	}
-	else {
-		outputText("Error: Invalid expectation for input.");
-		return "";
-	}
+  TextIO::UserInput userInput = {
+    .type = CommandType::Invalid, .command = "", .target = ""};
+  string inputLine;
+  getline(cin >> ws, inputLine);
+  if (!stringIsValid(inputLine))
+  {
+    return userInput;
+  }
+  string lowerCaseInput = StringToLowerCase(inputLine);
+  vector<string> words = SplitBySpaces(lowerCaseInput);
+  if (words.empty())
+  {
+    return userInput;
+  }
+
+  for (const auto& [commandText, commandType] : textCommands)
+  {
+    if (string singleWordCommand = words[0];
+        singleWordCommand.find(commandText) == 0)
+    {
+      userInput.type = commandType;
+      userInput.command = words[0];
+      userInput.interable = words.size() > 1 ? words[1] : "";
+      userInput.target = words.size() > 2 ? words[2] : "";
+    }
+    else if (words.size() > 1)
+    {
+
+      if (string twoWordCommand = words[0] + " " + words[1];
+          twoWordCommand.find(commandText) == 0)
+      {
+        userInput.type = commandType;
+        userInput.command = twoWordCommand;
+        userInput.interable = words.size() > 2 ? words[2] : "";
+        userInput.target = words.size() > 3 ? words[3] : "";
+      }
+    }
+  }
+  return userInput;
 }
 
-bool TextIO::processInput(const InputToProcess& input)
+void TextIO::outputText(string& text)
 {
-	// If input is empty, return false
-	if (input.rawInput.empty()) {
-		return false;
-	}
-
-	// If not expecting a command, accept any input
-	if (!input.expectCommand) {
-		return true;
-	}
-
-	// Convert input to lowercase for easier comparison
-	string lowerCaseInput = StringToLowerCase(input.rawInput);
-
-	// Check if the input matches any known commands
-	for (const auto& command : textCommands) {
-		if (lowerCaseInput.find(command) != string::npos) {
-			return true;
-		}
-	}
-	// Unable to process input
-	return false;
-}
-
-bool TextIO::outputText(const string& text)
-{
-	// Check if the text is valid
-	if (!stringIsValid(text)) {
-		return false;
-	}
-	cout << text << endl;
-	return true;
+  if (!stringIsValid(text))
+  {
+    cerr << "Error: outputText called with invalid string" << "\n";
+    return;
+  }
+  cerr << text << "\n";
+  return;
 }
