@@ -44,18 +44,10 @@ struct UserInput
   string target;
 };
 
-// struct outputParams
-//{
-//   CommandType commandType;
-//   string outputText;
-// };
-
 // Handling inputs
 UserInput getInput();
-// bool processInput(UserInput& userInput);
 
 // Handling outputs
-// CommandType outputText(outputParams& outputParams);
 void outputText(string& text);
 } // namespace TextIO
 

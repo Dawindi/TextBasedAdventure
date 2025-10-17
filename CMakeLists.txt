@@ -22,12 +22,42 @@ add_library (TextIO STATIC
 "include/project/text_io.h")
 target_include_directories(TextIO PUBLIC SOURCES)
 
+# Finite State Machine (FSM) Library
+set(FSM_HEADERS
+#state machines
+  "include/project/fsm/InterfaceStateMachine.h"
+  "include/project/fsm/BaseStateMachine.h"
+  "include/project/fsm/GameStateMachine.h"
+#states
+  "include/project/fsm/InterfaceState.h"
+  "include/project/fsm/BaseState.h"
+  "include/project/fsm/InitializeState.h"
+  #"include/project/fsm/SendOutputToUserState.h"
+  #"include/project/fsm/RequestUserInputState.h"
+  #"include/project/fsm/ProcessUserInputState.h"
+)
+set(FSM_SOURCES
+#state machines
+ "src/fsm/BaseStateMachine.cpp"
+ "src/fsm/GameStateMachine.cpp"
+#states
+ "src/fsm/BaseState.cpp"
+ "src/fsm/BaseStateMachine.cpp"
+ "src/fsm/InitializeState.cpp"
+ #"src/fsm/SendOutputToUserState.cpp"
+ #"src/fsm/RequestUserInputState.cpp"
+ #"src/fsm/ProcessUserInputState.cpp"
+)
+add_library (FSM STATIC ${FSM_SOURCES} ${FSM_HEADERS})
+target_include_directories(FSM PUBLIC SOURCES)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE TextIO)
+target_link_libraries(${PROJECT_NAME} PRIVATE FSM)
 
 # Include sub-projects.
 add_subdirectory ("apps")

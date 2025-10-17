@@ -33,3 +33,7 @@
 
 /out
 /.vs
+*.bkp
+*.drawio
+*.dtmp
+*.png
