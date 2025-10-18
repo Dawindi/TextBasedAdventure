@@ -10,7 +10,7 @@ class InterfaceState;
 
 enum class GameStateType : std::uint8_t
 {
-  UnknownState = 255,
+  InvaslidState = 255,
   InitializeState = 0,
   SendOutputToUserState,
   RequestInputFromUserState,
@@ -29,6 +29,7 @@ enum class GameStateType : std::uint8_t
 
 enum class GameContext : std::uint8_t
 {
+  InvalidContext = 255,
   StartUpOrError = 0,
   GameIsRunning,
   SaveGame,
@@ -40,6 +41,8 @@ class GameStateMachine : public BaseStateMachine
   GameStateMachine();
 
   private:
+  //virtual void entryPoint() override;
+  virtual void transitionToNextState() override;
   virtual void exitPoint() override;
 
   std::unique_ptr<InterfaceState> state_;

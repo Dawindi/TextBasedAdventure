@@ -1,5 +1,5 @@
-#ifndef INITIALIZE_STATE_MACHINE_H
-#define INITIALIZE_STATE_MACHINE_H
+#ifndef VALIDATE_STATE_MACHINE_H
+#define VALIDATE_STATE_MACHINE_H
 #pragma once
 
 #include "project/fsm/BaseState.h"
@@ -9,21 +9,21 @@
 #include <cstdint>
 #include <memory>
 
-class InterfaceState;
-
 using std::array;
-using std::string;
 using std::uint8_t;
 using std::unique_ptr;
-using std::vector;
 
-class InitializeState : public BaseState
+class InterfaceState;
+
+class ValidateGameState : public BaseState
 {
   public:
-  InitializeState();
+  ValidateGameState();
 
   unique_ptr<InterfaceState> getNextState() override;
+
   virtual const uint8_t getStateType() const override;
+  const uint8_t getNextContext(const uint8_t& currentContext) const;
 
   private:
   // Enter handles initialization when entering the state
@@ -32,12 +32,11 @@ class InitializeState : public BaseState
   void doActivity() override;
   // setNextState determines the next state based on current conditions
   void setNextState() override;
-  // exit handles cleanup when exiting the state and replaces itself with the
-  void exit() override;
 
   unique_ptr<InterfaceState> nextState_;
-  const array<GameStateType, 1> validNextStates_{
-    GameStateType::SendOutputToUserState};
+  const array<GameStateType, 2> validNextStates_{
+    GameStateType::HandleErrorState, GameStateType::StartGameState};
+  GameContext nextContext_ = GameContext::InvalidContext;
 };
 
-#endif // INITIALIZE_STATE_MACHINE_H
+#endif // VALIDATE_STATE_MACHINE_H

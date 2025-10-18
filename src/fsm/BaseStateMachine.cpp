@@ -1,5 +1,6 @@
 #include <project/fsm/BaseStateMachine.h>
 
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <project/fsm/InterfaceState.h>
@@ -24,8 +25,25 @@ void BaseStateMachine::entryPoint()
 #endif
   while (state_)
   {
-    state_->process();
-    transitionToNextState();
+    try
+    {
+      state_->process();
+      transitionToNextState();
+    }
+    catch (const std::exception& e)
+    {
+      cerr << "Context: State Machine \n"
+           << "Standard Exception : " << e.what() << "\n ";
+      state_.reset(nullptr);
+      break;
+    }
+    catch (...)
+    {
+      cerr << "Context: State Machine \n"
+           << "Unknown Exception\n";
+      state_.reset(nullptr);
+      break;
+    }
   }
 }
 
@@ -48,10 +66,8 @@ void BaseStateMachine::transitionToNextState()
     }
 #endif
 
-    std::unique_ptr<InterfaceState> nextState =
-      std::move(state_->getNextState());
-    state_.release();
-    state_ = std::move(nextState);
+    // Transition to the next state
+    state_ = std::move(state_->getNextState());
 
 #if defined(_DEBUG)
     {

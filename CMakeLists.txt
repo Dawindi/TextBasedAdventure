@@ -35,6 +35,16 @@ set(FSM_HEADERS
   #"include/project/fsm/SendOutputToUserState.h"
   #"include/project/fsm/RequestUserInputState.h"
   #"include/project/fsm/ProcessUserInputState.h"
+  #"include/project/fsm/CheckForSavedGamesState.h"
+  #"include/project/fsm/NoSaveGameFoundState.h"
+  #"include/project/fsm/SaveGameFoundState.h"
+  #"include/project/fsm/CreateNewGameState.h"
+  #"include/project/fsm/LoadSavedGameState.h"
+  #"include/project/fsm/HandleErrorState.h"
+  "include/project/fsm/ValidateGameState.h"
+  #"include/project/fsm/StartGameState.h"
+  #"include/project/fsm/UpdateWorldAndEntitiesState.h"
+  #"include/project/fsm/SaveGameState.h"
 )
 set(FSM_SOURCES
 #state machines
@@ -47,6 +57,16 @@ set(FSM_SOURCES
  #"src/fsm/SendOutputToUserState.cpp"
  #"src/fsm/RequestUserInputState.cpp"
  #"src/fsm/ProcessUserInputState.cpp"
+ #"src/fsm/CheckForSavedGamesState.cpp"
+ #"src/fsm/NoSaveGameFoundState.cpp"
+ #"src/fsm/SaveGameFoundState.cpp"
+ #"src/fsm/CreateNewGameState.cpp"
+ #"src/fsm/LoadSavedGameState.cpp"
+ #"src/fsm/HandleErrorState.cpp"
+ "src/fsm/ValidateGameState.cpp"
+ #"src/fsm/StartGameState.cpp"
+ #"src/fsm/UpdateWorldAndEntitiesState.cpp"
+ #"src/fsm/SaveGameState.cpp"
 )
 add_library (FSM STATIC ${FSM_SOURCES} ${FSM_HEADERS})
 target_include_directories(FSM PUBLIC SOURCES)

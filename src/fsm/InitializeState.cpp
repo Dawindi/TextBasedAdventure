@@ -2,9 +2,16 @@
 
 #include "project/fsm/GameStateMachine.h"
 #include <iostream>
+#include <project/fsm/BaseState.h>
+#include <project/fsm/InterfaceState.h>
 #include <utility>
+#include <vector>
 
 using std::cerr;
+using std::move;
+using std::uint8_t;
+using std::unique_ptr;
+using std::vector;
 
 InitializeState::InitializeState() : nextState_(nullptr) {}
 
@@ -17,12 +24,12 @@ void InitializeState::enter()
 #endif
 }
 
-std::unique_ptr<InterfaceState> InitializeState::getNextState()
+unique_ptr<InterfaceState> InitializeState::getNextState()
 {
   return std::move(nextState_);
 }
 
-std::uint8_t InitializeState::getStateType()
+const uint8_t InitializeState::getStateType() const
 {
   return static_cast<std::uint8_t>(GameStateType::InitializeState);
 }
@@ -37,26 +44,6 @@ void InitializeState::setNextState()
   // Implementation for determining the next state from Initialize state
   // Currently, there is only one valid state to transition to
   // That is state 2: SendOutputToUserState
-}
-
-bool InitializeState::nextStateIsValid()
-{
-  for (const auto& validGameStateType : validNextStates_)
-  {
-    if (static_cast<std::uint8_t>(validGameStateType) ==
-        nextState_->getStateType())
-    {
-      return true;
-    }
-  }
-#if defined(_DEBUG)
-  {
-    cerr << "Next state is state "
-         << static_cast<std::uint8_t>(nextState_->getStateType())
-         << " and that state is invalid  \n";
-  }
-#endif
-  return false;
 }
 
 void InitializeState::exit() { nextState_.reset(nullptr); }

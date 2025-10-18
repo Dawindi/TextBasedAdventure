@@ -5,6 +5,10 @@
 #include <project/fsm/InterfaceState.h>
 
 using std::cerr;
+using std::string;
+using std::uint8_t;
+using std::unique_ptr;
+using std::vector;
 
 void StateErrorHandler::printError()
 {
@@ -18,7 +22,9 @@ void BaseState::process()
     enter();
     doActivity();
     setNextState();
-    nextStateIsValid();
+    const uint8_t nextStateType =
+      nextState_ ? nextState_->getStateType() : UINT8_MAX;
+    nextStateIsValid(nextStateType, getValidStateTypes());
     exit();
   }
   catch (const std::exception& e)
@@ -37,9 +43,14 @@ void BaseState::process()
   }
 }
 
-std::unique_ptr<InterfaceState> BaseState::getNextState() { return nullptr; }
+unique_ptr<InterfaceState> BaseState::getNextState() { return nullptr; }
 
-std::uint8_t BaseState::getStateType() { return UINT8_MAX; }
+const vector<uint8_t> BaseState::getValidStateTypes()
+{
+  return vector<uint8_t>();
+}
+
+const uint8_t BaseState::getStateType() const { return UINT8_MAX; }
 
 void BaseState::enter()
 {
@@ -51,12 +62,27 @@ void BaseState::doActivity()
   // Implementation for doActivity
 }
 
-void BaseState::setNextState()
-{
-  // Implementation for setNextState
-}
+void BaseState::setNextState() {}
 
-bool BaseState::nextStateIsValid() { return false; }
+const bool BaseState::nextStateIsValid(const uint8_t& nextStateType,
+                                 const vector<uint8_t>& validStateTypes) const
+{
+  for (const auto& validState : validStateTypes)
+  {
+    if (nextStateType == validState)
+    {
+      return true;
+    }
+  }
+
+#if defined(_DEBUG)
+  {
+    cerr << "Next state is invalid\n";
+  }
+#endif
+
+  return false;
+}
 
 void BaseState::exit()
 {

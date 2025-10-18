@@ -14,10 +14,12 @@ class BaseStateMachine : public InterfaceStateMachine
   BaseStateMachine();
   virtual void run() override final;
 
+  protected:
+  virtual void transitionToNextState() override;
+
   private:
   virtual void entryPoint() override final;
   virtual void exitPoint() override;
-  virtual void transitionToNextState() override final;
 
   std::unique_ptr<InterfaceState> state_;
 };
