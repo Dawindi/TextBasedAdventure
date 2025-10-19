@@ -6,6 +6,7 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 using std::array;
 using std::string;
@@ -16,42 +17,36 @@ using std::vector;
 class StateErrorHandler
 {
   public:
-  StateErrorHandler(const string& msg) : errorMsg(msg) {}
-
+  explicit StateErrorHandler(const string& msg) : errorMsg(msg) {}
   void printError();
 
   private:
   string errorMsg;
 };
 
+class InterfaceStateMachine;
+
 class BaseState : public InterfaceState
 {
   public:
   BaseState() = default;
 
-  // Main processing function that calls the other functions in order
-  virtual void process() override final;
-
-  virtual unique_ptr<InterfaceState> getNextState() override;
-  virtual const vector<uint8_t> getValidStateTypes() override;
-  virtual const uint8_t getStateType() const override;
+  void process(InterfaceStateMachine& stateMachine) override final;
+  unique_ptr<InterfaceState> getNextState() override;
+  vector<uint8_t> getValidStateTypes() const override;
+  uint8_t getStateType() const override;
 
   private:
-  // Enter handles initialization when entering the state
-  virtual void enter() override;
-  // doActivity contains the main logic of the state
-  virtual void doActivity() override;
-  // setNextState determines the next state based on current conditions
-  virtual void setNextState() override;
-  // exit handles cleanup when exiting the state and replaces itself with the
-  virtual void exit() override;
-  // nextStateIsValid checks if the determined next state is valid
-  virtual const bool
+  void enter(InterfaceStateMachine& stateMachine) override;
+  void doActivity() override;
+  void setNextState() override;
+  void exit() override;
+  bool
   nextStateIsValid(const uint8_t& nextState,
                    const vector<uint8_t>& validStateTypes) const override final;
 
-  const unique_ptr<InterfaceState> nextState_ = nullptr;
-  const array<uint8_t, 0> validStateTypes_ = {};
+  unique_ptr<InterfaceState> nextState_ = nullptr;
+  const array<uint8_t, 0> validStateTypes_{}; // empty set by default
 };
 
 #endif // BASE_STATE_H

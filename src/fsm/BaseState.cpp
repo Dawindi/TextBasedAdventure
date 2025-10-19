@@ -3,6 +3,7 @@
 #include <exception>
 #include <iostream>
 #include <project/fsm/InterfaceState.h>
+#include <stdexcept>
 
 using std::cerr;
 using std::string;
@@ -15,16 +16,23 @@ void StateErrorHandler::printError()
   cerr << "State Error: " << errorMsg << "\n";
 }
 
-void BaseState::process()
+void BaseState::process(InterfaceStateMachine& stateMachine)
 {
   try
   {
-    enter();
+    enter(stateMachine);
     doActivity();
     setNextState();
+    // Need to create a getNextState here to solve this
     const uint8_t nextStateType =
       nextState_ ? nextState_->getStateType() : UINT8_MAX;
-    nextStateIsValid(nextStateType, getValidStateTypes());
+    if (!nextStateIsValid(nextStateType, getValidStateTypes()))
+    {
+      cerr << "Error: Invalid state transition from "
+           << static_cast<unsigned int>(getStateType()) << " to "
+           << static_cast<unsigned int>(nextStateType) << "\n";
+      throw std::runtime_error("Invalid state transition");
+    }
     exit();
   }
   catch (const std::exception& e)
@@ -45,26 +53,20 @@ void BaseState::process()
 
 unique_ptr<InterfaceState> BaseState::getNextState() { return nullptr; }
 
-const vector<uint8_t> BaseState::getValidStateTypes()
+vector<uint8_t> BaseState::getValidStateTypes() const
 {
-  return vector<uint8_t>();
+  return vector<uint8_t>{};
 }
 
-const uint8_t BaseState::getStateType() const { return UINT8_MAX; }
+uint8_t BaseState::getStateType() const { return UINT8_MAX; }
 
-void BaseState::enter()
-{
-  // Implementation for enter
-}
+void BaseState::enter(InterfaceStateMachine& stateMachine) {}
 
-void BaseState::doActivity()
-{
-  // Implementation for doActivity
-}
+void BaseState::doActivity() {}
 
 void BaseState::setNextState() {}
 
-const bool BaseState::nextStateIsValid(const uint8_t& nextStateType,
+bool BaseState::nextStateIsValid(const uint8_t& nextStateType,
                                  const vector<uint8_t>& validStateTypes) const
 {
   for (const auto& validState : validStateTypes)
@@ -74,17 +76,10 @@ const bool BaseState::nextStateIsValid(const uint8_t& nextStateType,
       return true;
     }
   }
-
-#if defined(_DEBUG)
-  {
-    cerr << "Next state is invalid\n";
-  }
+#ifdef _DEBUG
+  cerr << "Next state is invalid\n";
 #endif
-
   return false;
 }
 
-void BaseState::exit()
-{
-  // Implementation for exit
-}
+void BaseState::exit() {}

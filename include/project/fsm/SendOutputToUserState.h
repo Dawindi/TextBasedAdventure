@@ -1,5 +1,5 @@
-#ifndef INITIALIZE_STATE_H
-#define INITIALIZE_STATE_H
+#ifndef SEND_OUTPUT_TO_USER_STATE_H
+#define SEND_OUTPUT_TO_USER_STATE_H
 #pragma once
 
 #include "InterfaceState.h"
@@ -15,10 +15,10 @@ using std::unique_ptr;
 
 class InterfaceStateMachine;
 
-class InitializeState : public BaseState
+class SendOutputToUserState : public BaseState
 {
   public:
-  InitializeState();
+  SendOutputToUserState();
 
   unique_ptr<InterfaceState> getNextState() override;
   uint8_t getStateType() const override;
@@ -34,4 +34,4 @@ class InitializeState : public BaseState
   const array<GameStateType, 1> validNextStates_;
 };
 
-#endif // INITIALIZE_STATE__H
+#endif // SEND_OUTPUT_TO_USER_STATE_H

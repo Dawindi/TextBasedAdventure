@@ -1,69 +1,79 @@
 #include "project/fsm/ValidateGameState.h"
 
 #include "project/fsm/GameStateMachine.h"
+#include "project/fsm/InterfaceState.h"
+#include "project/fsm/InterfaceStateMachine.h"
 #include <iostream>
-#include <project/fsm/InterfaceState.h>
 #include <utility>
 
 using std::cerr;
+using std::uint8_t;
+using std::unique_ptr;
 
-ValidateGameState::ValidateGameState() : nextState_(nullptr) {}
-
-void ValidateGameState::enter()
+ValidateGameState::ValidateGameState()
+  : nextState_(nullptr), stateMachine_(nullptr)
 {
-#if defined(_DEBUG)
+}
+
+void ValidateGameState::enter(InterfaceStateMachine& stateMachine)
+{
+  stateMachine_ = &stateMachine;
+#ifdef _DEBUG
+  cerr << "Entering ValidateGameState \n";
+  // If stateMachine_ is null, print an error message
+  if (stateMachine_ == nullptr)
   {
-    cerr << "Entering ValidateGameState \n";
+    cerr << "Error: stateMachine_ is null in SendOutputToUserState::enter\n";
+  }
+  // Otherwise, print the address of stateMachine_ and the inherited type
+  else
+  {
+    cerr << "stateMachine_ address: " << stateMachine_ << "\n";
+    cerr << "Inherited type: " << typeid(*stateMachine_).name() << "\n";
   }
 #endif
 }
 
-std::unique_ptr<InterfaceState> ValidateGameState::getNextState()
+unique_ptr<InterfaceState> ValidateGameState::getNextState()
 {
   return std::move(nextState_);
 }
 
-const std::uint8_t ValidateGameState::getStateType() const
+uint8_t ValidateGameState::getStateType() const
 {
-  return static_cast<std::uint8_t>(GameStateType::ValidateGameState);
+  return static_cast<uint8_t>(GameStateType::ValidateGameState);
 }
 
-const uint8_t
-ValidateGameState::getNextContext(const uint8_t& currentContext) const
+uint8_t ValidateGameState::getNextContext(const uint8_t& currentContext) const
 {
-  uint8_t nextContext = static_cast<uint8_t>(GameContext::InvalidContext);
+  auto nextContext = static_cast<uint8_t>(GameContext::InvalidContext);
   if (!nextState_)
   {
     return nextContext;
   }
-  else if (nextState_->getStateType() ==
-           static_cast<std::uint8_t>(GameStateType::HandleErrorState))
+  if ((nextState_->getStateType() & static_cast<uint8_t>(GameStateType::HandleErrorState)) != 0U)
   {
     nextContext = static_cast<uint8_t>(GameContext::StartUpOrError);
+    return nextContext;
   }
-  else if (currentContext == static_cast<uint8_t>(GameContext::StartUpOrError))
+  if ((currentContext & static_cast<uint8_t>(GameContext::StartUpOrError)) != 0U)
   {
     nextContext = static_cast<uint8_t>(GameContext::GameIsRunning);
+    return nextContext;
   }
-  else if (currentContext == static_cast<uint8_t>(GameContext::GameIsRunning))
+  if ((currentContext & static_cast<uint8_t>(GameContext::GameIsRunning)) != 0U)
   {
     nextContext = static_cast<uint8_t>(GameContext::SaveGame);
+    return nextContext;
   }
-  else if (currentContext == static_cast<uint8_t>(GameContext::SaveGame))
+  if ((currentContext & static_cast<uint8_t>(GameContext::SaveGame)) != 0U)
   {
     nextContext = static_cast<uint8_t>(GameContext::GameIsRunning);
+    return nextContext;
   }
   return nextContext;
 }
 
-void ValidateGameState::doActivity()
-{
-  // Implementation for the main activity of the Validate state
-}
+void ValidateGameState::doActivity() {}
 
-void ValidateGameState::setNextState()
-{
-  // Implementation for determining the next state from Validate state
-  // Currently, there is only one valid state to transition to
-  // That is state 2: SendOutputToUserState
-}
+void ValidateGameState::setNextState() {}

@@ -77,9 +77,9 @@ const unordered_map<string, CommandType> textCommands = {
 string StringToLowerCase(const string& input)
 {
   string lowerCaseString = input;
-  for (char& c : lowerCaseString)
+  for (char& character : lowerCaseString)
   {
-    c = tolower(static_cast<unsigned char>(c));
+    character = static_cast<char>(tolower(static_cast<int>(character)));
   }
   return lowerCaseString;
 }
@@ -90,17 +90,17 @@ bool stringIsValid(const string& input)
   {
     return false;
   }
-  for (const auto& c : input)
+  for (const auto& character : input)
   {
-    if (!isspace(static_cast<unsigned char>(c)))
+    if (!static_cast<bool>(isspace(static_cast<int>(character))))
     {
       break;
     }
     return false;
   }
-  for (const auto& c : input)
+  for (const auto& character : input)
   {
-    if (!isprint(static_cast<unsigned char>(c)))
+    if (!isprint(static_cast<unsigned char>(character)))
     {
       return false;
     }

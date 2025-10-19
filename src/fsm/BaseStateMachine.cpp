@@ -1,24 +1,39 @@
-#include <project/fsm/BaseStateMachine.h>
+#include "project/fsm/BaseStateMachine.h"
 
+#include "project/fsm/InterfaceState.h"
 #include <exception>
 #include <iostream>
 #include <memory>
-#include <project/fsm/InterfaceState.h>
 #include <utility>
 
 using std::cerr;
 
-BaseStateMachine::BaseStateMachine() : state_(nullptr) {}
-
-void BaseStateMachine::run()
+BaseStateMachine::BaseStateMachine()
+  : state_(nullptr), previousStateType_(UINT8_MAX)
 {
+}
+
+void BaseStateMachine::run(unique_ptr<InterfaceState> Startstate)
+{
+  state_ = std::move(Startstate);
   entryPoint();
   exitPoint();
 }
 
+std::uint8_t BaseStateMachine::getPreviousStateType() const
+{
+  return previousStateType_;
+}
+
+const InterfaceState& BaseStateMachine::getCurrentState() const
+{
+  return state_ ? *state_
+                : throw std::runtime_error("Current state is nullptr");
+}
+
 void BaseStateMachine::entryPoint()
 {
-#if defined(_DEBUG)
+#ifdef _DEBUG
   {
     cerr << "Entering state machine\n";
   }
@@ -27,8 +42,8 @@ void BaseStateMachine::entryPoint()
   {
     try
     {
-      state_->process();
-      transitionToNextState();
+      state_->process(*this);
+      transitionToNextState(std::move(state_));
     }
     catch (const std::exception& e)
     {
@@ -49,29 +64,35 @@ void BaseStateMachine::entryPoint()
 
 void BaseStateMachine::exitPoint()
 {
-#if defined(_DEBUG)
+#ifdef _DEBUG
   {
     cerr << "Exiting state machine\n";
   }
 #endif
 }
 
-void BaseStateMachine::transitionToNextState()
+void BaseStateMachine::setPreviousStateType(std::uint8_t& stateType)
 {
-  if (state_)
+  previousStateType_ = stateType;
+}
+
+void BaseStateMachine::transitionToNextState(
+  unique_ptr<InterfaceState> currentState)
+{
+  if (currentState)
   {
-#if defined(_DEBUG)
+#ifdef _DEBUG
     {
       cerr << "Transitioning from current state to next state\n";
     }
 #endif
 
     // Transition to the next state
-    state_ = std::move(state_->getNextState());
+    currentState = std::move(currentState->getNextState());
 
-#if defined(_DEBUG)
+#ifdef _DEBUG
     {
-      if (!state_)
+      if (!currentState)
       {
         cerr << "The next state is a nullptr\n";
       }

@@ -3,12 +3,15 @@
 #pragma once
 
 #include "BaseStateMachine.h"
+#include "InterfaceState.h" // ensure complete type
+
 #include <cstdint>
 #include <memory>
 
-class InterfaceState;
+using std::uint8_t;
+using std::unique_ptr;
 
-enum class GameStateType : std::uint8_t
+enum class GameStateType : uint8_t
 {
   InvaslidState = 255,
   InitializeState = 0,
@@ -27,7 +30,7 @@ enum class GameStateType : std::uint8_t
   SaveGameState,
 };
 
-enum class GameContext : std::uint8_t
+enum class GameContext : uint8_t
 {
   InvalidContext = 255,
   StartUpOrError = 0,
@@ -39,13 +42,12 @@ class GameStateMachine : public BaseStateMachine
 {
   public:
   GameStateMachine();
+  virtual ~GameStateMachine() = default;
 
   private:
-  //virtual void entryPoint() override;
-  virtual void transitionToNextState() override;
-  virtual void exitPoint() override;
+  void transitionToNextState(unique_ptr<InterfaceState> currentState) override;
+  void exitPoint() override;
 
-  std::unique_ptr<InterfaceState> state_;
   GameContext currentContext_;
 };
 

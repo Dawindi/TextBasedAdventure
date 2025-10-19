@@ -10,6 +10,8 @@ using std::uint8_t;
 using std::unique_ptr;
 using std::vector;
 
+class InterfaceStateMachine;
+
 class InterfaceState
 {
   public:
@@ -17,21 +19,22 @@ class InterfaceState
   virtual ~InterfaceState() = default;
 
   // Main processing function that calls the other functions in order
-  virtual void process() = 0;
+  virtual void process(InterfaceStateMachine& stateMachine) = 0;
 
   virtual unique_ptr<InterfaceState> getNextState() = 0;
-  virtual const vector<uint8_t> getValidStateTypes() = 0;
-  virtual const uint8_t getStateType() const = 0;
+  // Return by value; const qualifier on return type removed for readability
+  virtual vector<uint8_t> getValidStateTypes() const = 0;
+  virtual uint8_t getStateType() const = 0;
 
   private:
   // Enter handles initialization when entering the state
-  virtual void enter() = 0;
+  virtual void enter(InterfaceStateMachine& stateMachine) = 0;
   // doActivity contains the main logic of the state
   virtual void doActivity() = 0;
   // setNextState determines the next state based on current conditions
   virtual void setNextState() = 0;
   // nextStateIsValid checks if the determined next state is valid
-  virtual const bool
+  virtual bool
   nextStateIsValid(const uint8_t& nextState,
                    const vector<uint8_t>& validStateTypes) const = 0;
   // exit handles cleanup when exiting the state and replaces itself with the

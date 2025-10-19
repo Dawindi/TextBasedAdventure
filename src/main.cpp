@@ -1,9 +1,11 @@
 ﻿#include "project/fsm/GameStateMachine.h"
+#include "project/fsm/InitializeState.h"
 #include "project/text_io.h"
 #include <cstdio>
 #include <memory>
 #include <string>
 
+using std::make_unique;
 using std::string;
 
 namespace
@@ -43,8 +45,8 @@ auto main() -> int
   // printf("Release mode\n");
 #endif
 
-  auto gameStateMachine = std::make_unique<GameStateMachine>();
-  gameStateMachine->run();
+  auto gameStateMachine = make_unique<GameStateMachine>();
+  gameStateMachine->run(make_unique<InitializeState>());
 
   bool running = true;
   while (running)
@@ -60,16 +62,14 @@ auto main() -> int
         playerReady = true;
         break;
       }
-      else if (input.type == CommandType::No)
+      if (input.type == CommandType::No)
       {
         outputText(intro2NoResponse);
         input = getInput();
+        continue;
       }
-      else
-      {
-        outputText(defaultResponse);
-        input = getInput();
-      }
+      outputText(defaultResponse);
+      input = getInput();
     }
     outputText(intro2YesResponse);
     running = false;
