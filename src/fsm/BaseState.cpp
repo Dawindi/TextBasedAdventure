@@ -1,9 +1,11 @@
 #include "project/fsm/BaseState.h"
 
+#include "project/fsm/InterfaceState.h"
+#include "project/fsm/InterfaceStateMachine.h"
 #include <exception>
 #include <iostream>
-#include <project/fsm/InterfaceState.h>
 #include <stdexcept>
+#include <utility>
 
 using std::cerr;
 using std::string;
@@ -22,8 +24,8 @@ void BaseState::process(InterfaceStateMachine& stateMachine)
   {
     enter(stateMachine);
     doActivity();
-    setNextState();
-    // Need to create a getNextState here to solve this
+    prepareNextState();
+    nextState_ = getNextState();
     const uint8_t nextStateType =
       nextState_ ? nextState_->getStateType() : UINT8_MAX;
     if (!nextStateIsValid(nextStateType, getValidStateTypes()))
@@ -33,7 +35,6 @@ void BaseState::process(InterfaceStateMachine& stateMachine)
            << static_cast<unsigned int>(nextStateType) << "\n";
       throw std::runtime_error("Invalid state transition");
     }
-    exit();
   }
   catch (const std::exception& e)
   {
@@ -51,20 +52,68 @@ void BaseState::process(InterfaceStateMachine& stateMachine)
   }
 }
 
-unique_ptr<InterfaceState> BaseState::getNextState() { return nullptr; }
+void BaseState::prepareNextState() {}
 
-vector<uint8_t> BaseState::getValidStateTypes() const
+unique_ptr<InterfaceState> BaseState::getNextState()
 {
-  return vector<uint8_t>{};
+  return std::move(nextState_);
+}
+
+void BaseState::setNextState(unique_ptr<InterfaceState> nextState)
+{
+  nextState_ = std::move(nextState);
+}
+
+const vector<uint8_t>& BaseState::getValidStateTypes() const
+{
+  return validStateTypes_;
+}
+
+void BaseState::setValidStateTypes(const vector<uint8_t>& validStateTypes)
+{
+  validStateTypes_ = validStateTypes;
 }
 
 uint8_t BaseState::getStateType() const { return UINT8_MAX; }
 
-void BaseState::enter(InterfaceStateMachine& stateMachine) {}
+InterfaceStateMachine* BaseState::getStateMachine() const
+{
+#ifdef _DEBUG
+  {
+    if (stateMachine_ == nullptr)
+    {
+      cerr << "Error: stateMachine_ is null in BaseState::getStateMachine\n";
+    }
+  }
+#endif
+
+  return stateMachine_;
+}
+
+void BaseState::enter(InterfaceStateMachine& stateMachine)
+{
+  stateMachine_ = &stateMachine;
+
+#ifdef _DEBUG
+  {
+    const string stateType = typeid(*this).name();
+    cerr << "Entering state: " << stateType << "\n";
+    // If stateMachine_ is null, print an error message
+    if (stateMachine_ == nullptr)
+    {
+      cerr << "Error: stateMachine_ is null in InitializeState::enter\n";
+    }
+    // Otherwise, print the address of stateMachine_ and the inherited type
+    else
+    {
+      cerr << "State Machine address: " << stateMachine_ << "\n";
+      cerr << "State Machine class: " << typeid(*stateMachine_).name() << "\n";
+    }
+  }
+#endif
+}
 
 void BaseState::doActivity() {}
-
-void BaseState::setNextState() {}
 
 bool BaseState::nextStateIsValid(const uint8_t& nextStateType,
                                  const vector<uint8_t>& validStateTypes) const

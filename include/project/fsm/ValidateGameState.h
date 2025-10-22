@@ -4,7 +4,6 @@
 
 #include "project/fsm/BaseState.h"
 #include "project/fsm/GameStateMachine.h"
-#include "project/fsm/InterfaceState.h"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -20,20 +19,15 @@ class ValidateGameState : public BaseState
   public:
   ValidateGameState();
 
-  unique_ptr<InterfaceState> getNextState() override;
+  void prepareNextState() override;
   uint8_t getStateType() const override;
   uint8_t getNextContext(const uint8_t& currentContext) const;
 
   private:
   void enter(InterfaceStateMachine& stateMachine) override;
   void doActivity() override;
-  void setNextState() override;
 
-  unique_ptr<InterfaceState> nextState_;
-  InterfaceStateMachine* stateMachine_;
-  const array<GameStateType, 2> validNextStates_{
-    GameStateType::HandleErrorState, GameStateType::StartGameState};
-  GameContext nextContext_ = GameContext::InvalidContext;
+  const array<GameStateType, 2> validNextStates_;
 };
 
 #endif // VALIDATE_STATE_MACHINE_H

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BaseStateMachine.h"
-#include "InterfaceState.h" // ensure complete type
+#include "InterfaceState.h"
 
 #include <cstdint>
 #include <memory>
@@ -45,8 +45,9 @@ class GameStateMachine : public BaseStateMachine
   virtual ~GameStateMachine() = default;
 
   private:
-  void transitionToNextState(unique_ptr<InterfaceState> currentState) override;
+  void transitionToNextState(InterfaceState* currentState) override;
   void exitPoint() override;
+  void updateContext(const InterfaceState& currentState);
 
   GameContext currentContext_;
 };

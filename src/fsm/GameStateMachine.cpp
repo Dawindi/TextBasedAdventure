@@ -15,58 +15,23 @@ using std::uint8_t;
 using std::unique_ptr;
 
 GameStateMachine::GameStateMachine()
-  : currentContext_(GameContext::StartUpOrError)
+  : BaseStateMachine(), currentContext_(GameContext::StartUpOrError)
 {
 }
 
-void GameStateMachine::transitionToNextState(
-  unique_ptr<InterfaceState> currentState)
+void GameStateMachine::transitionToNextState(InterfaceState* currentState)
 {
-  bool nextContextIsValid = false;
-  uint8_t nextContext = UINT8_MAX;
-
-  if (currentState && currentState->getStateType() ==
-                        static_cast<uint8_t>(GameStateType::ValidateGameState))
+  if (!currentState)
   {
-    auto* validateGameState =
-      dynamic_cast<ValidateGameState*>(currentState.get());
-    nextContext =
-      validateGameState->getNextContext(static_cast<uint8_t>(currentContext_));
-    const array<GameContext, 3> validContexts{GameContext::StartUpOrError,
-                                              GameContext::GameIsRunning,
-                                              GameContext::SaveGame};
-
-    if (nextContext !=
-        static_cast<uint8_t>(currentContext_)) // fixed comparison
-    {
-      for (const auto& validContext : validContexts)
-      {
-        if (nextContext == static_cast<uint8_t>(validContext))
-        {
-          nextContextIsValid = true;
-          break;
-        }
-      }
-      if (!nextContextIsValid)
-      {
-        cerr << "Error: Invalid context transition from "
-             << static_cast<unsigned int>(static_cast<uint8_t>(currentContext_))
-             << " to " << static_cast<unsigned int>(nextContext) << "\n";
-        throw std::runtime_error("Invalid context transition");
-      }
-    }
+    throw std::invalid_argument("currentState is null");
   }
 
-  BaseStateMachine::transitionToNextState(std::move(currentState));
-
-  if (nextContextIsValid)
+  if (currentState->getStateType() ==
+      static_cast<uint8_t>(GameStateType::ValidateGameState))
   {
-#ifdef _DEBUG
-    cerr << "Updating game context to "
-         << static_cast<unsigned int>(nextContext) << "\n";
-#endif
-    currentContext_ = static_cast<GameContext>(nextContext);
+    updateContext(*currentState);
   }
+  BaseStateMachine::transitionToNextState(currentState);
 }
 
 void GameStateMachine::exitPoint()
@@ -74,4 +39,46 @@ void GameStateMachine::exitPoint()
 #ifdef _DEBUG
   cerr << "Exiting GameStateMachine\n";
 #endif
+}
+
+void GameStateMachine::updateContext(const InterfaceState& currentState)
+{
+  bool nextContextIsValid = false;
+  const auto* validateGameState =
+    dynamic_cast<const ValidateGameState*>(&currentState);
+  auto nextContext =
+    validateGameState->getNextContext(static_cast<uint8_t>(currentContext_));
+
+  if (nextContext == static_cast<uint8_t>(currentContext_))
+  {
+    return;
+  }
+
+  const array<GameContext, 3> validContexts{GameContext::StartUpOrError,
+                                            GameContext::GameIsRunning,
+                                            GameContext::SaveGame};
+
+  for (const auto& validContext : validContexts)
+  {
+    if (nextContext == static_cast<uint8_t>(validContext))
+    {
+      nextContextIsValid = true;
+      break;
+    }
+  }
+  if (!nextContextIsValid)
+  {
+    cerr << "Error: Invalid context transition from "
+         << static_cast<unsigned int>(static_cast<uint8_t>(currentContext_))
+         << " to " << static_cast<unsigned int>(nextContext) << "\n";
+    throw std::runtime_error("Invalid context transition");
+  }
+
+#ifdef _DEBUG
+  cerr << "Context transition from "
+       << static_cast<unsigned int>(static_cast<uint8_t>(currentContext_))
+       << " to " << static_cast<unsigned int>(nextContext) << "\n";
+#endif
+
+  currentContext_ = static_cast<GameContext>(nextContext);
 }

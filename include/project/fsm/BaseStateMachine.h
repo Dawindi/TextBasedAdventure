@@ -21,7 +21,7 @@ class BaseStateMachine : public InterfaceStateMachine
   const InterfaceState& getCurrentState() const override final;
 
   protected:
-  void transitionToNextState(unique_ptr<InterfaceState> currentState) override;
+  void transitionToNextState(InterfaceState* currentState) override;
   void setPreviousStateType(uint8_t& stateType) override;
 
   private:

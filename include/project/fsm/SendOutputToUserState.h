@@ -2,7 +2,6 @@
 #define SEND_OUTPUT_TO_USER_STATE_H
 #pragma once
 
-#include "InterfaceState.h"
 #include "project/fsm/BaseState.h"
 #include "project/fsm/GameStateMachine.h"
 #include <array>
@@ -20,17 +19,14 @@ class SendOutputToUserState : public BaseState
   public:
   SendOutputToUserState();
 
-  unique_ptr<InterfaceState> getNextState() override;
+  void prepareNextState() override;
   uint8_t getStateType() const override;
 
   private:
   void enter(InterfaceStateMachine& stateMachine) override;
   void doActivity() override;
-  void setNextState() override;
   void exit() override;
 
-  unique_ptr<InterfaceState> nextState_;
-  InterfaceStateMachine* stateMachine_;
   const array<GameStateType, 1> validNextStates_;
 };
 

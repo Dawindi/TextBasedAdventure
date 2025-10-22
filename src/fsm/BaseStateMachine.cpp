@@ -7,6 +7,7 @@
 #include <utility>
 
 using std::cerr;
+using std::unique_ptr;
 
 BaseStateMachine::BaseStateMachine()
   : state_(nullptr), previousStateType_(UINT8_MAX)
@@ -43,7 +44,7 @@ void BaseStateMachine::entryPoint()
     try
     {
       state_->process(*this);
-      transitionToNextState(std::move(state_));
+      transitionToNextState(state_.get());
     }
     catch (const std::exception& e)
     {
@@ -76,8 +77,7 @@ void BaseStateMachine::setPreviousStateType(std::uint8_t& stateType)
   previousStateType_ = stateType;
 }
 
-void BaseStateMachine::transitionToNextState(
-  unique_ptr<InterfaceState> currentState)
+void BaseStateMachine::transitionToNextState(InterfaceState* currentState)
 {
   if (currentState)
   {
@@ -87,12 +87,19 @@ void BaseStateMachine::transitionToNextState(
     }
 #endif
 
-    // Transition to the next state
-    currentState = std::move(currentState->getNextState());
+    // Get the next state
+    unique_ptr<InterfaceState> nextState =
+      std::move(currentState->getNextState());
+
+    // Clean up current state
+    currentState->exit();
+
+    // Reset current state and move next state into place
+    state_ = std::move(nextState);
 
 #ifdef _DEBUG
     {
-      if (!currentState)
+      if (!state_)
       {
         cerr << "The next state is a nullptr\n";
       }

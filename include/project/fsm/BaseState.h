@@ -32,21 +32,36 @@ class BaseState : public InterfaceState
   BaseState() = default;
 
   void process(InterfaceStateMachine& stateMachine) override final;
-  unique_ptr<InterfaceState> getNextState() override;
-  vector<uint8_t> getValidStateTypes() const override;
+  void exit() override;
+  void prepareNextState() override;
+
+  // Next state getter
+  unique_ptr<InterfaceState> getNextState() override final;
+
+  // Valid state types getters and setters
+  const vector<uint8_t>& getValidStateTypes() const override;
+  void
+  setValidStateTypes(const vector<uint8_t>& validStateTypes) override final;
+
+  // State type getter
   uint8_t getStateType() const override;
 
-  private:
+  // State machine getter
+  InterfaceStateMachine* getStateMachine() const;
+
+  protected:
   void enter(InterfaceStateMachine& stateMachine) override;
+  void setNextState(unique_ptr<InterfaceState> nextState) override final;
+
+  private:
   void doActivity() override;
-  void setNextState() override;
-  void exit() override;
   bool
   nextStateIsValid(const uint8_t& nextState,
                    const vector<uint8_t>& validStateTypes) const override final;
 
-  unique_ptr<InterfaceState> nextState_ = nullptr;
-  const array<uint8_t, 0> validStateTypes_{}; // empty set by default
+  InterfaceStateMachine* stateMachine_;
+  unique_ptr<InterfaceState> nextState_;
+  vector<uint8_t> validStateTypes_;
 };
 
 #endif // BASE_STATE_H

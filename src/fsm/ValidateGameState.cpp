@@ -4,39 +4,22 @@
 #include "project/fsm/InterfaceState.h"
 #include "project/fsm/InterfaceStateMachine.h"
 #include <iostream>
-#include <utility>
+#include <vector>
 
 using std::cerr;
 using std::uint8_t;
-using std::unique_ptr;
+using std::vector;
 
 ValidateGameState::ValidateGameState()
-  : nextState_(nullptr), stateMachine_(nullptr)
+  : BaseState(), validNextStates_({GameStateType::HandleErrorState,
+                                   GameStateType::StartGameState})
 {
 }
 
-void ValidateGameState::enter(InterfaceStateMachine& stateMachine)
+void ValidateGameState::prepareNextState()
 {
-  stateMachine_ = &stateMachine;
-#ifdef _DEBUG
-  cerr << "Entering ValidateGameState \n";
-  // If stateMachine_ is null, print an error message
-  if (stateMachine_ == nullptr)
-  {
-    cerr << "Error: stateMachine_ is null in SendOutputToUserState::enter\n";
-  }
-  // Otherwise, print the address of stateMachine_ and the inherited type
-  else
-  {
-    cerr << "stateMachine_ address: " << stateMachine_ << "\n";
-    cerr << "Inherited type: " << typeid(*stateMachine_).name() << "\n";
-  }
-#endif
-}
-
-unique_ptr<InterfaceState> ValidateGameState::getNextState()
-{
-  return std::move(nextState_);
+  // make unique pointer of HandleErrorState or StartGameState depending on the
+  // result of validation
 }
 
 uint8_t ValidateGameState::getStateType() const
@@ -47,16 +30,19 @@ uint8_t ValidateGameState::getStateType() const
 uint8_t ValidateGameState::getNextContext(const uint8_t& currentContext) const
 {
   auto nextContext = static_cast<uint8_t>(GameContext::InvalidContext);
-  if (!nextState_)
+  const auto nextState = const_cast<ValidateGameState*>(this)->getNextState();
+  if (!nextState)
   {
     return nextContext;
   }
-  if ((nextState_->getStateType() & static_cast<uint8_t>(GameStateType::HandleErrorState)) != 0U)
+  if ((nextState->getStateType() &
+       static_cast<uint8_t>(GameStateType::HandleErrorState)) != 0U)
   {
     nextContext = static_cast<uint8_t>(GameContext::StartUpOrError);
     return nextContext;
   }
-  if ((currentContext & static_cast<uint8_t>(GameContext::StartUpOrError)) != 0U)
+  if ((currentContext & static_cast<uint8_t>(GameContext::StartUpOrError)) !=
+      0U)
   {
     nextContext = static_cast<uint8_t>(GameContext::GameIsRunning);
     return nextContext;
@@ -74,6 +60,17 @@ uint8_t ValidateGameState::getNextContext(const uint8_t& currentContext) const
   return nextContext;
 }
 
-void ValidateGameState::doActivity() {}
+void ValidateGameState::enter(InterfaceStateMachine& stateMachine)
+{
+  BaseState::enter(stateMachine);
 
-void ValidateGameState::setNextState() {}
+  vector<uint8_t> validTypes;
+  for (const auto& state : validNextStates_)
+  {
+    validTypes.push_back(static_cast<uint8_t>(state));
+  }
+
+  setValidStateTypes(validTypes);
+}
+
+void ValidateGameState::doActivity() {}

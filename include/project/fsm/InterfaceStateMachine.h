@@ -22,8 +22,7 @@ class InterfaceStateMachine
   private:
   virtual void entryPoint() = 0;
   virtual void exitPoint() = 0;
-  virtual void
-  transitionToNextState(unique_ptr<InterfaceState> currentState) = 0;
+  virtual void transitionToNextState(InterfaceState* currentState) = 0;
   virtual void setPreviousStateType(std::uint8_t& stateType) = 0;
 };
 
